@@ -64,7 +64,6 @@ def main(args):
                 trajectory.append(trans)
     
     print(f'there are {len(trajectory)} camera poses in trajectory')
-
     # sfm['intrinsics'][0]['locked'] = "1"
 
     if args.mode == 0:
@@ -75,13 +74,14 @@ def main(args):
         pose_id = view['poseId']
         img_id = os.path.basename(os.path.splitext(view['path'])[0])
         rotation = trajectory[int(img_id)][0:3, 0:3].transpose().flatten().astype('str').tolist()
-        translation = trajectory[int(img_id)][0:3, 3].astype('str').tolist()
+        center = np.matmul(trajectory[int(img_id)][0:3, 0:3].transpose(), -trajectory[int(img_id)][0:3, 3]).astype('str').tolist()
         # input cameraInit.sfm from camera init node, add all camera poses for all views
         if args.mode == 0:
             pose = {"poseId": pose_id, 'pose': {}}
             pose['pose']['transform']={}
             pose['pose']['transform']['rotation'] = rotation
-            pose['pose']['transform']['center'] = translation
+            # center: R.transpose()*(-translate)
+            pose['pose']['transform']['center'] = center
             pose['pose']['locked'] = "1"
             poses.append(pose)
             count += 1
@@ -90,11 +90,11 @@ def main(args):
             for pose in poses:
                 if pose['poseId'] == pose_id:
                     pose['pose']['transform']['rotation'] = rotation
-                    pose['pose']['transform']['center'] = translation
+                    pose['pose']['transform']['center'] = center
                     pose['pose']['locked'] = "1"
                     count += 1
 
-    # sfm['poses'] = poses
+    sfm['poses'] = poses
     print(f'{len(views)} of views in total')
     print(f'{len(poses)} of poses in total')
     print(f'{count} of poses are replaces')
