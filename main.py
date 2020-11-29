@@ -74,13 +74,13 @@ def main(args):
         pose_id = view['poseId']
         img_id = os.path.basename(os.path.splitext(view['path'])[0])
         rotation = trajectory[int(img_id)][0:3, 0:3].transpose().flatten().astype('str').tolist()
+        # center: R.transpose()*(-translate)
         center = np.matmul(trajectory[int(img_id)][0:3, 0:3].transpose(), -trajectory[int(img_id)][0:3, 3]).astype('str').tolist()
         # input cameraInit.sfm from camera init node, add all camera poses for all views
         if args.mode == 0:
             pose = {"poseId": pose_id, 'pose': {}}
             pose['pose']['transform']={}
             pose['pose']['transform']['rotation'] = rotation
-            # center: R.transpose()*(-translate)
             pose['pose']['transform']['center'] = center
             pose['pose']['locked'] = "1"
             poses.append(pose)
