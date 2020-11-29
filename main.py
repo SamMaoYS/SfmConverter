@@ -46,18 +46,24 @@ def main(args):
     sfm.pop('featuresFolders', None)
     sfm.pop('matchesFolders', None)
 
+    # the raw color image extracted from video with ffmpeg has step size 10
+    # so 1 of 10 images are extracted
+    step = 10
     trajectory = []
     with open(args.trajectory) as f:
         for i, line in enumerate(f):
-            cam_info = json.loads(line)
-            trans = cam_info.get('transform', None)
-            trans = np.asarray(trans)
-            trans = trans.reshape(4, 4).transpose()
+            if i % step == 0:
+                cam_info = json.loads(line)
+                trans = cam_info.get('transform', None)
+                trans = np.asarray(trans)
+                trans = trans.reshape(4, 4).transpose()
 
-            # camera coordinates transform
-            trans = np.matmul(trans, np.diag([1, -1, -1, 1]))
-            trans = trans/trans[3][3]
-            trajectory.append(trans)
+                # camera coordinates transform
+                trans = np.matmul(trans, np.diag([1, -1, -1, 1]))
+                trans = trans/trans[3][3]
+                trajectory.append(trans)
+    
+    print(f'there are {len(trajectory)} camera poses in trajectory')
 
     # sfm['intrinsics'][0]['locked'] = "1"
 
